@@ -20,125 +20,133 @@ using System.Collections;
  * @date 11-2011
  */
 public class OrbitCamera : MonoBehaviour
-{
-	
-	//The target of the camera. The camera will always point to this object.
-	public Transform _target;
-	
-	//The default distance of the camera from the target.
-	public float _distance = 20.0f;
-	
-	//Control the speed of zooming and dezooming.
-	public float _zoomStep = 1.0f;
-	
-	//The speed of the camera. Control how fast the camera will rotate.
-	public float _xSpeed = 1f;
-	public float _ySpeed = 1f;
-	
-	//The position of the cursor on the screen. Used to rotate the camera.
-	private float _x = 0.0f;
-	private float _y = 0.0f;
-	
-	//Distance vector. 
-	private Vector3 _distanceVector;
-	
-	/**
-  * Move the camera to its initial position.
-  */
-	void Start ()
-	{
-		_distanceVector = new Vector3(0.0f,0.0f,-_distance);
-		
-		Vector2 angles = this.transform.localEulerAngles;
-		_x = angles.x;
-		_y = angles.y;
-		
-		this.Rotate(_x, _y);
-		
+{		
+	public Transform target;
+	public float distance= 10.0f;
+	public int cameraSpeed= 5;
+
+	public float xSpeed= 175.0f;
+	public float ySpeed= 75.0f;
+
+	public float pinchSpeed;
+	private float lastDist = 0;
+	private float curDist = 0;
+	public int yMinLimit= 10; //Lowest vertical angle in respect with the target.
+	public int yMaxLimit= 80;
+	public float minDistance= 9.5f; //Min distance of the camera from the target
+	public float maxDistance= 10.5f;
+
+	private float x= 0.0f;
+	private float y= 0.0f;
+
+	private Touch touch;
+
+
+
+	void  Start (){
+		Vector3 angles= transform.eulerAngles;		
+		x = angles.y;		
+		y = angles.x;
 	}
-	
-	/**
-  * Rotate the camera or zoom depending on the input of the player.
-  */
-	void LateUpdate()
-	{
-		if ( _target )
-		{
-			this.RotateControls();
-			this.Zoom();
-		}
-	}
-	
-	/**
-  * Rotate the camera when the first button of the mouse is pressed.
-  * 
-  */
-	void RotateControls()
-	{
-		if ( Input.GetButton("Fire1") )
-		{
-			_x += Input.GetAxis("Mouse X") * _xSpeed;
-			_y += -Input.GetAxis("Mouse Y")* _ySpeed;
+
+
+
+	void  Update (){
+		
+		if (target && GetComponent<Camera>()) {
 			
-			this.Rotate(_x,_y);
+			//Zooming with mouse
+			
+			distance += Input.GetAxis("Mouse ScrollWheel")*distance;
+			
+			distance = Mathf.Clamp(distance, minDistance, maxDistance);
+			if (Input.touchCount == 1 && Input.GetTouch(0).phase == TouchPhase.Moved) 
+				
+			{					
+				//One finger touch does orbit					
+				touch = Input.GetTouch(0);					
+				x += touch.deltaPosition.x * xSpeed * 0.002f;					
+				y -= touch.deltaPosition.y * ySpeed * 0.002f;
+				
+			}
+			
+			if (Input.touchCount > 1 && (Input.GetTouch(0).phase == TouchPhase.Moved || Input.GetTouch(1).phase == TouchPhase.Moved))
+			{					
+				//Two finger touch does pinch to zoom					
+				var touch1 = Input.GetTouch(0);					
+				var touch2 = Input.GetTouch(1);					
+				curDist = Vector2.Distance(touch1.position, touch2.position);					
+				if(curDist > lastDist)						
+				{						
+					distance += Vector2.Distance(touch1.deltaPosition, touch2.deltaPosition)*pinchSpeed/10;						
+				} 
+				else
+			{
+					
+					distance -= Vector2.Distance(touch1.deltaPosition, touch2.deltaPosition)*pinchSpeed/10;
+					
+				}
+				
+				
+				
+				lastDist = curDist;
+				
+			}
+			
+			//Detect mouse drag;
+			if (Application.platform == RuntimePlatform.WindowsPlayer ||
+			    Application.platform == RuntimePlatform.WindowsEditor ||
+			    Application.platform == RuntimePlatform.WindowsWebPlayer)
+			{
+					if(Input.GetMouseButton(0))   {
+						
+						
+						
+						x += Input.GetAxis("Mouse X") * xSpeed * 0.02f;
+						
+						y -= Input.GetAxis("Mouse Y") * ySpeed * 0.02f;       
+						
+					}
+			}
+			
+			y = ClampAngle(y, yMinLimit, yMaxLimit);
+			
+			
+			
+			Quaternion rotation= Quaternion.Euler(y, x, 0);
+			
+			Vector3 vTemp = new Vector3(0.0f, 0.0f, -distance);
+			
+			Vector3 position= rotation * vTemp + target.position;
+			
+			
+			
+			transform.position = Vector3.Lerp (transform.position, position, cameraSpeed);
+			
+			transform.rotation = rotation;      
+			
 		}
 		
 	}
-	
-	/**
-  * Transform the cursor mouvement in rotation and in a new position
-  * for the camera.
-  */
-	void Rotate( float x, float y )
-	{
-		//Transform angle in degree in quaternion form used by Unity for rotation.
-		Quaternion rotation = Quaternion.Euler(y,x,0.0f);
+
+
+
+	static float  ClampAngle ( float angle ,   float min ,   float max  ){
 		
-		//The new position is the target position + the distance vector of the camera
-		//rotated at the specified angle.
-		Vector3 position = rotation * _distanceVector + _target.position;
+		if (angle < -360)
+			
+			angle += 360;
 		
-		//Update the rotation and position of the camera.
-		transform.rotation = rotation;
-		transform.position = position;
-	}
-	
-	/**
-  * Zoom or dezoom depending on the input of the mouse wheel.
-  */
-	void Zoom()
-	{
-		if ( Input.GetAxis("Mouse ScrollWheel") < 0.0f )
-		{
-			this.ZoomOut();
-		}
-		else if ( Input.GetAxis("Mouse ScrollWheel") > 0.0f )
-		{
-			this.ZoomIn();
-		}
+		if (angle > 360)
+			
+			angle -= 360;
+		
+		return Mathf.Clamp (angle, min, max);
 		
 	}
-	
-	/**
-  * Reduce the distance from the camera to the target and
-  * update the position of the camera (with the Rotate function).
-  */
-	void ZoomIn()
-	{
-		_distance -= _zoomStep;
-		_distanceVector = new Vector3(0.0f,0.0f,-_distance);
-		this.Rotate(_x,_y);
-	}
-	
-	/**
-  * Increase the distance from the camera to the target and
-  * update the position of the camera (with the Rotate function).
-  */
-	void ZoomOut()
-	{
-		_distance += _zoomStep;
-		_distanceVector = new Vector3(0.0f,0.0f,-_distance);
-		this.Rotate(_x,_y);
-	}
+		
+		
+		
+
 	
 } //End class

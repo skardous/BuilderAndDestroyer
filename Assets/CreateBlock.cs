@@ -33,7 +33,7 @@ public class CreateBlock : MonoBehaviour {
 				print ("touchPosition = " +touch.position);
 
 				float distance = Mathf.Sqrt(Mathf.Pow((buttonPosition.x - touchPosition.x),2) + Mathf.Pow((buttonPosition.y - touchPosition.y),2));
-				float size = gameObject.GetComponent<RectTransform>().localScale.x;
+				float size = gameObject.GetComponent<RectTransform>().localScale.x * 2;
 				print ("distance Test = " + distance);
 				print ("size  Test = " + size);
 				
@@ -66,12 +66,14 @@ public class CreateBlock : MonoBehaviour {
 			else if (touch.phase == TouchPhase.Moved) 
 			{
 				print ("moving to touch.position : "+touch.position);
-
-				Vector3 curScreenPoint = new Vector3(touch.position.x, touch.position.y, 0.0f);
-				Vector3 curPosition = Camera.main.ScreenToWorldPoint(curScreenPoint);
-				curPosition.z = 0.0f;
-				print ("curPosition = " + curPosition);
-				blockCreated.transform.position = curPosition;
+				if (blockCreated)
+				{
+					Vector3 curScreenPoint = new Vector3(touch.position.x, touch.position.y, 0.0f);
+					Vector3 curPosition = Camera.main.ScreenToWorldPoint(curScreenPoint);
+					curPosition.z = 0.0f;
+					print ("curPosition = " + curPosition);
+					blockCreated.transform.position = curPosition;
+				}
 //				if (pickedObject != null) 
 //				{
 //					float distance1 = 0f;
@@ -83,36 +85,40 @@ public class CreateBlock : MonoBehaviour {
 			} 
 			else if (touch.phase == TouchPhase.Ended) 
 			{
+				blockCreated = null;
 				//pickedObject = null;
 			}
 		}
 	}
-	
+
+	#if UNITY_EDITOR_WIN
 	void OnMouseDown() {
 		
-//		print("MouseDown");
-//		buttonPosition = gameObject.transform.position;
-//		print (buttonPosition);
-//		offset = gameObject.transform.position - Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, screenPoint.z));
-//		//sp = Sprite.Create ();
-//		blockCreated = Instantiate(blockToCreate, transform.position, gameObject.transform.rotation) as GameObject;
-//
-//		print ("block creation... (button)");
-//
-//		GameControl gameManager = GameObject.Find("GameControl").GetComponent<GameControl>();
-//		gameManager.createBrick (blockCreated);
+		print("MouseDown");
+		buttonPosition = gameObject.transform.position;
+		print (buttonPosition);
+		offset = gameObject.transform.position - Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, screenPoint.z));
+		//sp = Sprite.Create ();
+		blockCreated = Instantiate(blockToCreate, transform.position, gameObject.transform.rotation) as GameObject;
+
+		print ("block creation... (button)");
+
+		GameControl gameManager = GameObject.Find("GameControl").GetComponent<GameControl>();
+		gameManager.createBrick (blockCreated);
 		//sp.
 	}
 	
 	void OnMouseDrag()
 	{
-//		Vector3 curScreenPoint = new Vector3(Input.mousePosition.x, Input.mousePosition.y, screenPoint.z);
-//		Vector3 curPosition = Camera.main.ScreenToWorldPoint(curScreenPoint) + offset;
-//		blockCreated.transform.position = curPosition;
+		Vector3 curScreenPoint = new Vector3(Input.mousePosition.x, Input.mousePosition.y, screenPoint.z);
+		Vector3 curPosition = Camera.main.ScreenToWorldPoint(curScreenPoint) + offset;
+		blockCreated.transform.position = curPosition;
 	}
 	
 	void OnMouseUp()
 	{
 		print ("mouseup");
 	}
+
+	#endif
 }

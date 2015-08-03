@@ -12,6 +12,7 @@ public class LevelPrint : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		Text t = gameObject.GetComponent<Text>();
-		t.text = GameControl.control.currentLevel.ToString();
+		GameControl gameControl = GameObject.Find ("GameControl").GetComponent<GameControl> ();		
+		t.text = "Floor " + gameControl.currentLevel.ToString();
 	}
 }
