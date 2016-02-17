@@ -26,6 +26,9 @@ public class ExplosionScript : MonoBehaviour {
 	public float multiply = 1;
 	public bool clearOnChange = false;
 	public Text titleText;
+	public int startingAmmoCount;
+	public Text ammoValueText;
+	
 	public Transform sceneCamera;
 	public GraphicRaycaster graphicRaycaster;
 	public EventSystem eventSystem;
@@ -40,12 +43,13 @@ public class ExplosionScript : MonoBehaviour {
 	private static DemoParticleSystem s_Selected;
 
 	private bool spellsActive = false;
-	
+	private int currentAmmo = 0;
 	
 	private void Awake()
 	{
 		Select(s_SelectedIndex);
-		
+		ammoValueText.text = startingAmmoCount.ToString();
+		currentAmmo = startingAmmoCount;
 	}
 	
 	
@@ -125,12 +129,15 @@ public class ExplosionScript : MonoBehaviour {
 				
 				var pos = hit.point + hit.normal*spawnOffset;
 				
-				if ((pos - m_LastPos).magnitude > s_Selected.minDist)
+				if ((pos - m_LastPos).magnitude > s_Selected.minDist && currentAmmo > 0)
 				{
 					if (s_Selected.mode != Mode.Trail || m_Instance == null)
 					{
 						m_Instance = (Transform) Instantiate(s_Selected.transform, pos, rot);
-						
+
+						currentAmmo--;
+
+						ammoValueText.text = currentAmmo.ToString();
 						/*if (m_ParticleMultiplier != null)
 						{
 							m_Instance.GetComponent<ParticleSystemMultiplier>().multiplier = multiply;
@@ -216,7 +223,7 @@ public class ExplosionScript : MonoBehaviour {
 			}
 		}
 		
-		titleText.text = s_Selected.transform.name;
+		//titleText.text = s_Selected.transform.name;
 	}
 	
 	

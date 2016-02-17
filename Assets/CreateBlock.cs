@@ -1,5 +1,7 @@
 using UnityEngine;
 using System.Collections;
+using System;
+
 
 public class CreateBlock : MonoBehaviour {
 	private Vector3 screenPoint;
@@ -26,7 +28,6 @@ public class CreateBlock : MonoBehaviour {
 				RaycastHit hit = new RaycastHit();
 
 				buttonPosition = gameObject.transform.position;
-				//touchPosition = Camera.main.ScreenToWorldPoint(new Vector3(touch.position.x, touch.position.y, screenPoint.z));
 				touchPosition = touch.position;
 				
 				print ("buttonPosition = " +buttonPosition);
@@ -34,20 +35,18 @@ public class CreateBlock : MonoBehaviour {
 
 				float distance = Mathf.Sqrt(Mathf.Pow((buttonPosition.x - touchPosition.x),2) + Mathf.Pow((buttonPosition.y - touchPosition.y),2));
 				float size = gameObject.GetComponent<RectTransform>().localScale.x * 2;
-				print ("distance Test = " + distance);
-				print ("size  Test = " + size);
 				
 				if (distance < size) 
 				{
-					Vector3 toto = Camera.main.ScreenToWorldPoint(new Vector3(touch.position.x, touch.position.y, screenPoint.z));
-					toto.z = 0.0f;
-					print ("toto = "+toto);
+					Vector3 brickPosition = Camera.main.ScreenToWorldPoint(new Vector3((float)Math.Round(touch.position.x,1), (float)Math.Round(touch.position.y,1), screenPoint.z));
+					brickPosition.z = 0.0f;
+					print ("brickPosition = "+brickPosition);
 					offset = gameObject.transform.position - Camera.main.ScreenToWorldPoint(new Vector3(touch.position.x, touch.position.y, screenPoint.z));
 					//sp = Sprite.Create ();
-					blockCreated = Instantiate(blockToCreate, toto, gameObject.transform.rotation) as GameObject;
+					blockCreated = Instantiate(blockToCreate, brickPosition, gameObject.transform.rotation) as GameObject;
 
 
-					print ("block creation... at position : " + toto);
+					print ("block creation... at position : " + brickPosition);
 					
 					GameControl gameManager = GameObject.Find("GameControl").GetComponent<GameControl>();
 					gameManager.createBrick (blockCreated);
@@ -74,14 +73,6 @@ public class CreateBlock : MonoBehaviour {
 					print ("curPosition = " + curPosition);
 					blockCreated.transform.position = curPosition;
 				}
-//				if (pickedObject != null) 
-//				{
-//					float distance1 = 0f;
-//					if (horPlane.Raycast(ray, out distance1))
-//					{
-//						pickedObject.transform.position = ray.GetPoint(distance1);
-//					}
-//				}
 			} 
 			else if (touch.phase == TouchPhase.Ended) 
 			{
@@ -93,15 +84,13 @@ public class CreateBlock : MonoBehaviour {
 
 	#if UNITY_EDITOR_WIN
 	void OnMouseDown() {
-		
-		print("MouseDown");
-		buttonPosition = gameObject.transform.position;
-		print (buttonPosition);
+
+		Vector3 brickPosition = Camera.main.ScreenToWorldPoint(new Vector3((float)Math.Round(Input.mousePosition.x,1), (float)Math.Round(Input.mousePosition.y,1), screenPoint.z));
+		brickPosition.z = 0.0f;
+		print ("brickPosition = "+brickPosition);
 		offset = gameObject.transform.position - Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, screenPoint.z));
 		//sp = Sprite.Create ();
-		blockCreated = Instantiate(blockToCreate, transform.position, gameObject.transform.rotation) as GameObject;
-
-		print ("block creation... (button)");
+		blockCreated = Instantiate(blockToCreate, brickPosition, gameObject.transform.rotation) as GameObject;
 
 		GameControl gameManager = GameObject.Find("GameControl").GetComponent<GameControl>();
 		gameManager.createBrick (blockCreated);
@@ -110,9 +99,11 @@ public class CreateBlock : MonoBehaviour {
 	
 	void OnMouseDrag()
 	{
-		Vector3 curScreenPoint = new Vector3(Input.mousePosition.x, Input.mousePosition.y, screenPoint.z);
-		Vector3 curPosition = Camera.main.ScreenToWorldPoint(curScreenPoint) + offset;
+		print ("mousedrag");
+		Vector3 curScreenPoint = new Vector3((float)Math.Round(Input.mousePosition.x,0), (float)Math.Round(Input.mousePosition.y,0), screenPoint.z);
+		Vector3 curPosition = Camera.main.ScreenToWorldPoint(curScreenPoint) + (new Vector3(0.0f, 0.0f, offset.z));
 		blockCreated.transform.position = curPosition;
+		print (curScreenPoint);
 	}
 	
 	void OnMouseUp()

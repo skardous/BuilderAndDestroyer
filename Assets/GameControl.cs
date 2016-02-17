@@ -1,14 +1,21 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System;
+using System.Text.RegularExpressions;
 
 public class GameControl : MonoBehaviour {
 
 	public static GameControl control;
 
-	public int nbCubes;
+	public int currentScore = 0; //percent
+	public int bestScore = 0;
+	public int id = 0;	
 	public int currentLevel = 0;
 	private GameObject[][] bricks;
+
+	public GameObject brickX2DToCreate;
+	public GameObject brickY2DToCreate;
 
 	private List<List<GameObject>> bricksPerLevel = new List<List<GameObject>>();
 
@@ -42,8 +49,6 @@ public class GameControl : MonoBehaviour {
 			setBrickOpacityTo(brick, 1.0f);		
 		}
 	}
-
-
 
 	public void decreaseLevel()
 	{
@@ -106,7 +111,71 @@ public class GameControl : MonoBehaviour {
 	{
 		return bricksPerLevel;
 	}
+
+	public void parseData(string data)
+	{
+		//string[] levels = data.Split(new Char [] {']'});
 		
+		//GroupCollection levels = Regex.Match (data, @"\[([^]]*)\]").Groups;
+		
+		var levelPattern = @"\[(.*?)\]";
+		//var query = "H1-receptor antagonist [HSA:3269] [PATH:hsa04080(3269)]";
+		var levelMatches = Regex.Matches (data, levelPattern);
+		
+		int i = 0;
+		foreach (Match lm in levelMatches) {
+			string levelData = lm.Groups [1].ToString ();
+
+			var brickSplitPattern = @"\{(.*?)\}";
+			var brickMatches = Regex.Matches (levelData, brickSplitPattern);
+			bricksPerLevel.Add (new List<GameObject> ());
+			print (lm.Groups [1]);
+			
+			foreach (Match bm in brickMatches) {
+				string brickText = bm.Groups [1].ToString ();
+				string[] brickData = brickText.Split (new Char [] {';'});
+				print ("on level " + i + ": " + bm.Groups [1]);
+				GameObject blockCreated = null;
+				if (brickData [0].Contains ("2dBrickX")) {
+					print ("create brick X in 3D");
+					blockCreated = Instantiate (brickX2DToCreate, new Vector3 (float.Parse (brickData [1]), float.Parse (brickData [2]), 0.0f), gameObject.transform.rotation) as GameObject;
+				} else if (brickData [0].Contains ("2dBrickY")) {
+					print ("create brick Y in 3D");					
+					blockCreated = Instantiate (brickY2DToCreate, new Vector3 (float.Parse (brickData [1]), float.Parse (brickData [2]), 0.0f), gameObject.transform.rotation) as GameObject;
+				}
+				bricksPerLevel [i].Add (blockCreated);
+			}
+			i++;
+			
+			
+		}
+	}
+
+	public void setBestScore(int score)
+	{
+		bestScore = score;
+	}
+
+	public void setId(int setid)
+	{
+		id = setid;
+	}
+
+	public void setCurrentLevel(int level)
+	{
+		currentLevel = level;
+	}
+
+	public int getBestScore()
+	{
+		return bestScore;
+	}
+
+	public int getId()
+	{
+		return id;
+	}
+
 	// Update is called once per frame
 	void Update () {
 	

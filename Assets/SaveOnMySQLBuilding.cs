@@ -17,15 +17,6 @@ public class SaveOnMySQLBuilding : MonoBehaviour {
 		string buildingName = inputFieldCo.text;
 
 		GameControl gameManager = GameObject.Find ("GameControl").GetComponent<GameControl> ();
-		print ( "TEMP ==== " + Application.temporaryCachePath);
-
-		System.Guid uid = System.Guid.NewGuid();
-
-		System.IO.File.WriteAllText(Application.temporaryCachePath + Path.DirectorySeparatorChar + uid.ToString() + "." + "txt", gameManager.getSceneString());
-		print ( "File saved at ==== " + Application.temporaryCachePath + Path.DirectorySeparatorChar + uid.ToString() + "." + "txt");
-		
-		print ( "STRING ==== " + gameManager.getSceneString());
-
 
 		SqlManager sqlManager = GameObject.Find ("GameControl").GetComponent<SqlManager> ();
 		if (buildingName == "")
@@ -35,6 +26,15 @@ public class SaveOnMySQLBuilding : MonoBehaviour {
 		
 		//PostObject (uid.ToString () + "." + "txt");
 
+	}
+
+	public void UpdatehighScore(InputField newChallenger)
+	{
+		GameControl gameManager = GameObject.Find ("GameControl").GetComponent<GameControl> ();
+		SqlManager sqlManager = GameObject.Find ("GameControl").GetComponent<SqlManager> ();
+		
+		StartCoroutine(sqlManager.UpdateBuildingScore(gameManager.getId().ToString(), gameManager.getBestScore ().ToString(), newChallenger.text));
+		
 	}
 
 }

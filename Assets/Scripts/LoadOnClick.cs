@@ -11,7 +11,7 @@ public class LoadOnClick : MonoBehaviour {
 	{
 		Application.LoadLevel(level);
 		if ((GameObject.Find ("GameControl") || GameObject.Find ("FileParser")) 
-		    && (level == 0 || (GameObject.Find ("FileParser") && level == 3))) {
+		    && (level == 0 ||  level == 3)) {
 
 			List<List<GameObject>> bricksPerLevel = new List<List<GameObject>>();
 
@@ -24,6 +24,7 @@ public class LoadOnClick : MonoBehaviour {
 			{
 				GameControl gameControl = GameObject.Find ("GameControl").GetComponent<GameControl> ();
 				bricksPerLevel = gameControl.getBricksPerLevel ();	
+				gameControl.setCurrentLevel(0);
 			}
 
 			int i = 0;
@@ -37,15 +38,15 @@ public class LoadOnClick : MonoBehaviour {
 
 			print ("CLEAR !!!!!!!!!!!!");
 			bricksPerLevel.Clear();
+
+
 			
 		}
 	}
 
 	public void DisplayPanel(GameObject panel)
 	{
-		//GameObject panel = GameObject.Find ("Panel");
 		panel.SetActive (!panel.activeSelf);
-		
 	}
 
 }
