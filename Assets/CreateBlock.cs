@@ -17,8 +17,6 @@ public class CreateBlock : MonoBehaviour {
 		if (Input.touchCount > 0) 
 		{
 			Touch touch = Input.touches[0];
-//			//Create horizontal plane
-//			Plane horPlane = new Plane(Vector3.up, Vector3.zero);
 			
 			//Gets the ray at position where the screen is touched
 			Ray ray = Camera.main.ScreenPointToRay(touch.position);
@@ -44,40 +42,36 @@ public class CreateBlock : MonoBehaviour {
 					offset = gameObject.transform.position - Camera.main.ScreenToWorldPoint(new Vector3(touch.position.x, touch.position.y, screenPoint.z));
 					//sp = Sprite.Create ();
 					blockCreated = Instantiate(blockToCreate, brickPosition, gameObject.transform.rotation) as GameObject;
-
-
-					print ("block creation... at position : " + brickPosition);
-					
 					GameControl gameManager = GameObject.Find("GameControl").GetComponent<GameControl>();
 					gameManager.createBrick (blockCreated);
 				}
 
-//				if (Physics.Raycast(ray, out hit, maxPickingDistance)) 
-//				{ 
-//					pickedObject = hit.transform;
-//					startPos = touch.position;
-//				} 
-//				else
-//				{
-//					pickedObject = null;
-//				}
 			} 
 			else if (touch.phase == TouchPhase.Moved) 
 			{
-				print ("moving to touch.position : "+touch.position);
+				//print ("moving to touch.position : "+touch.position);
 				if (blockCreated)
 				{
 					Vector3 curScreenPoint = new Vector3(touch.position.x, touch.position.y, 0.0f);
 					Vector3 curPosition = Camera.main.ScreenToWorldPoint(curScreenPoint);
 					curPosition.z = 0.0f;
-					print ("curPosition = " + curPosition);
+					//print ("curPosition = " + curPosition);
 					blockCreated.transform.position = curPosition;
 				}
 			} 
 			else if (touch.phase == TouchPhase.Ended) 
 			{
+				BoxCollider2D boxCollider = blockCreated.GetComponent<BoxCollider2D>();
+				Collider2D[] overlap = Physics2D.OverlapAreaAll(boxCollider.bounds.min, boxCollider.bounds.max);
+				GameControl gameManager = GameObject.Find("GameControl").GetComponent<GameControl>();
+				if (overlap.Length > 1) {
+					foreach(Collider2D c in overlap){
+						if (gameManager.getCurrentLevelBricks().Contains(c.gameObject)) {
+							Destroy(blockCreated);
+						}
+					}
+				}
 				blockCreated = null;
-				//pickedObject = null;
 			}
 		}
 	}
@@ -87,19 +81,16 @@ public class CreateBlock : MonoBehaviour {
 
 		Vector3 brickPosition = Camera.main.ScreenToWorldPoint(new Vector3((float)Math.Round(Input.mousePosition.x,1), (float)Math.Round(Input.mousePosition.y,1), screenPoint.z));
 		brickPosition.z = 0.0f;
-		print ("brickPosition = "+brickPosition);
+		//print ("brickPosition = "+brickPosition);
 		offset = gameObject.transform.position - Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, screenPoint.z));
-		//sp = Sprite.Create ();
 		blockCreated = Instantiate(blockToCreate, brickPosition, gameObject.transform.rotation) as GameObject;
 
 		GameControl gameManager = GameObject.Find("GameControl").GetComponent<GameControl>();
 		gameManager.createBrick (blockCreated);
-		//sp.
 	}
 	
 	void OnMouseDrag()
 	{
-		print ("mousedrag");
 		Vector3 curScreenPoint = new Vector3((float)Math.Round(Input.mousePosition.x,0), (float)Math.Round(Input.mousePosition.y,0), screenPoint.z);
 		Vector3 curPosition = Camera.main.ScreenToWorldPoint(curScreenPoint) + (new Vector3(0.0f, 0.0f, offset.z));
 		blockCreated.transform.position = curPosition;
@@ -108,7 +99,16 @@ public class CreateBlock : MonoBehaviour {
 	
 	void OnMouseUp()
 	{
-		print ("mouseup");
+		BoxCollider2D boxCollider = blockCreated.GetComponent<BoxCollider2D>();
+		Collider2D[] overlap = Physics2D.OverlapAreaAll(boxCollider.bounds.min, boxCollider.bounds.max);
+		GameControl gameManager = GameObject.Find("GameControl").GetComponent<GameControl>();
+		if (overlap.Length > 1) {
+			foreach(Collider2D c in overlap){
+				if (gameManager.getCurrentLevelBricks().Contains(c.gameObject)) {
+					Destroy(blockCreated);
+				}
+			}
+		}
 	}
 
 	#endif

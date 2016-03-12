@@ -11,9 +11,7 @@ public class DragVertical : MonoBehaviour {
 	//public GameObject block;
 
 	void Awake () { 
-
-			DontDestroyOnLoad(this); 
-			
+		DontDestroyOnLoad(this); 
 	}
 	
 	void OnMouseDown() {

@@ -112,6 +112,11 @@ public class GameControl : MonoBehaviour {
 		return bricksPerLevel;
 	}
 
+	public List<GameObject> getCurrentLevelBricks()
+	{
+		return bricksPerLevel[currentLevel];
+	}
+
 	public void parseData(string data)
 	{
 		//string[] levels = data.Split(new Char [] {']'});
